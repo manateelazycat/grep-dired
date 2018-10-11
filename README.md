@@ -17,5 +17,7 @@ It's set in your ~/.emacs like this:
 ```
 
 ## Usage
-```grep-dired-dwim```
-```grep-dired```
+
+Use command ```grep-dired-dwim``` search filename under current directory.
+
+Use command ```grep-dired``` for customize search.
