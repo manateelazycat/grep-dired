@@ -90,11 +90,8 @@
 
 (defgroup grep-dired nil
   "Run a `find' command and Dired the output."
-  :group 'dired
-  :prefix "find-")
+  :group 'grep-dired)
 
-;; FIXME this option does not really belong in this file, it's more general.
-;; Eg cf some tests in grep.el.
 (defcustom grep-dired-find-exec-terminator
   (if (eq 0
           (ignore-errors
@@ -109,43 +106,16 @@ than the latter."
   :group 'grep-dired
   :type 'string)
 
-;; find's -ls corresponds to these switches.
-;; Note -b, at least GNU find quotes spaces etc. in filenames
 (defcustom grep-dired-find-ls-option
   (cons "-ls" "-aluh")
-  "A pair of options to produce and parse an `ls -l'-type list from `find'.
-This is a cons of two strings (FIND-OPTION . LS-SWITCHES).
-FIND-OPTION is the option (or options) passed to `find' to produce
-a file listing in the desired format.  LS-SWITCHES is a set of
-`ls' switches that tell dired how to parse the output of `find'.
-
-The two options must be set to compatible values.
-For example, to use human-readable file sizes with GNU ls:
-   (\"-exec ls -ldh {} +\" . \"-ldh\")
-
-To use GNU find's inbuilt \"-ls\" option to list files:
-   (\"-ls\" . \"-dilsb\")
-since GNU find's output has the same format as using GNU ls with
-the options \"-dilsb\"."
+  "A pair of options to produce and parse an `ls -l'-type list from `find'."
   :type '(cons (string :tag "Find Option")
                (string :tag "Ls Switches"))
-  :group 'grep-dired)
-
-(defcustom grep-dired-find-ls-subdir-switches
-  (if (string-match "-[a-z]*b" (cdr grep-dired-find-ls-option))
-      "-alb"
-    "-al")
-  "`ls' switches for inserting subdirectories in `*Find*' buffers.
-This should contain the \"-l\" switch.
-Use the \"-F\" or \"-b\" switches if and only if you also use
-them for `grep-dired-find-ls-option'."
-  :type 'string
   :group 'grep-dired)
 
 (defvar grep-dired-find-args nil
   "Last arguments given to `find' by \\[grep-dired].")
 
-;; History of find-args values entered in the minibuffer.
 (defvar grep-dired-find-args-history nil)
 
 (defvar dired-sort-inhibit)
@@ -224,16 +194,8 @@ use in place of \"-ls\" as the final argument."
     (set (make-local-variable 'revert-buffer-function)
          `(lambda (ignore-auto noconfirm)
             (grep-dired ,dir ,grep-dired-find-args)))
-    ;; Set subdir-alist so that Tree Dired will work:
-    (if (fboundp 'dired-simple-subdir-alist)
-        ;; will work even with nested dired format (dired-nstd.el,v 1.15
-        ;; and later)
-        (dired-simple-subdir-alist)
-      ;; else we have an ancient tree dired (or classic dired, where
-      ;; this does no harm)
-      (set (make-local-variable 'dired-subdir-alist)
-           (list (cons default-directory (point-min-marker)))))
-    (set (make-local-variable 'dired-subdir-switches) grep-dired-find-ls-subdir-switches)
+    (set (make-local-variable 'dired-subdir-alist)
+         (list (cons default-directory (point-min-marker))))
     (setq buffer-read-only nil)
     ;; Subdir headlerline must come first because the first marker in
     ;; subdir-alist points there.
@@ -249,7 +211,7 @@ use in place of \"-ls\" as the final argument."
       (set-process-sentinel proc (function grep-dired-sentinel))
       ;; Initialize the process marker; it is used by the filter.
       (move-marker (process-mark proc) (point) (current-buffer)))
-    (setq mode-line-process '(":%s"))))
+    ))
 
 (defun grep-dired-kill-find ()
   "Kill the `find' process running in the current buffer."
@@ -325,9 +287,6 @@ use in place of \"-ls\" as the final argument."
               (let ((point (point)))
                 (insert "\n")
                 (dired-insert-set-properties point (point)))
-              (setq mode-line-process
-                    (concat ":"
-                            (symbol-name (process-status proc))))
               ;; Since the buffer and mode line will show that the
               ;; process is dead, we can delete it now.  Otherwise it
               ;; will stay around until M-x list-processes.
