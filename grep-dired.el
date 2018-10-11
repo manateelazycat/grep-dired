@@ -287,11 +287,7 @@ use in place of \"-ls\" as the final argument."
               (let ((point (point)))
                 (insert "\n")
                 (dired-insert-set-properties point (point)))
-              ;; Since the buffer and mode line will show that the
-              ;; process is dead, we can delete it now.  Otherwise it
-              ;; will stay around until M-x list-processes.
               (delete-process proc)
-              (force-mode-line-update)
               ))
           (message "grep-dired %s finished." (current-buffer))))))
 
